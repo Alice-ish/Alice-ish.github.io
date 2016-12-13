@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!--
 To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
@@ -179,41 +180,42 @@ and open the template in the editor.
 					return false;
 				});
 				$(document).on("click", ".summon", function () {
-					var hp = $("#now-hp").html();
-					var dm = Math.floor(hp * Number($(this).data("ps")));
-					var rem = hp - dm;
-					$(".dm").html("");
-					set_summon_dm(rem);
-					$("#now-hp").html(rem);
-					$.toaster({priority: 'success', title: 'Notice', message: '被ダメージ算出しました。'});
-					return false;
+				    var hp = $("#now-hp").html();
+				    var dm = Math.floor(hp * Number($(this).data("ps")));
+				    var rem = hp - dm;
+				    $(".dm").html("");
+				    set_summon_dm(rem, 0);
+				    $("#now-hp").html(rem);
+				    $.toaster({ priority: 'success', title: 'Notice', message: '被ダメージ算出しました。' });
+				    return false;
 				});
 				$(document).on("click", ".target-summon", function () {
-					var units_hp = get_target_units_hp() * 1;
-					var base_hp = $("#now-hp").html() * 1;
-					var ps = $(this).data("ps");
-					var dm_ps = ps.toString().split(',');
-					var summon_dm_total = 0 * 1;
-					var hp = base_hp;
-					console.log("召喚ダメージレート(Array)：" + dm_ps);
-					$.each(dm_ps, function (index, val) {
-						var summon_dm = Math.floor(hp * Number(val));
-						console.log("現HP：" + hp);
-						console.log(index + 1 + "回目の召喚ダメージ：" + summon_dm);
-						summon_dm_total += Number(summon_dm);
-						console.log("召喚トータルダメージ：" + summon_dm_total);
-						hp = hp - summon_dm;
-					});
-					var rem = base_hp - (summon_dm_total + units_hp);
-					console.log("ベースHP：" + base_hp);
-					console.log("召喚トータルダメージ：" + summon_dm_total);
-					console.log("部隊撃破ダメージ：" + units_hp);
+				    var units_hp = get_target_units_hp() * 1;
+				    var base_hp = $("#now-hp").html() * 1;
+				    var ps = $(this).data("ps");
+				    var dm_ps = ps.toString().split(',');
+				    var summon_dm_total = 0 * 1;
+				    var hp = base_hp;
+				    console.log("召喚ダメージレート(Array)：" + dm_ps);
+				    $.each(dm_ps, function (index, val) {
+				        var summon_dm = Math.floor(hp * Number(val));
+				        console.log("現HP：" + hp);
+				        console.log(index + 1 + "回目の召喚ダメージ：" + summon_dm);
+				        summon_dm_total += Number(summon_dm);
+				        console.log("召喚トータルダメージ：" + summon_dm_total);
+				        hp = hp - summon_dm;
+				    });
+				    var rem = base_hp;
+				    var min_hp = summon_dm_total;
+				    console.log("ベースHP：" + base_hp);
+				    console.log("召喚トータルダメージ：" + summon_dm_total);
+				    console.log("部隊撃破ダメージ：" + units_hp);
 
-					$(".dm").html("");
-					set_summon_dm(rem);
-					$("#now-hp").html(rem);
-					$.toaster({priority: 'success', title: 'Notice', message: '被ダメージ算出しました。'});
-					return false;
+				    $(".dm").html("");
+				    set_summon_dm(rem, min_hp);
+				    $("#now-hp").html(rem - min_hp);
+				    $.toaster({ priority: 'success', title: 'Notice', message: '被ダメージ算出しました。' });
+				    return false;
 				});
 
 
@@ -294,20 +296,24 @@ and open the template in the editor.
 					$("#dm" + t + "-" + u).html("");
 					return;
 				}
-				function set_summon_dm(stop) {
-					var total = 0;
-					$(".char-hp").each(function (index, element) {
-						total += Number($(element).val());
-						if ($(element).val() != 0) {
-							$("#dm" + $(element).parent(".char-grid").attr("id")).html("〇");
-						}
-//						console.log("id:" + $(element).parent(".char-grid").attr("id") + ", hp:" + $(element).val());
-//						console.log("total:" + total);
-//						console.log("------------------");
-						if (total >= stop) {
-							return false;
-						}
-					});
+				function set_summon_dm(stop, min) {
+				    var total = 0;
+				    $(".char-hp").each(function (index, element) {
+				        total += Number($(element).val());
+				        if ($(element).val() != 0) {
+				            if (total > min) {
+				                $("#dm" + $(element).parent(".char-grid").attr("id")).html("〇");
+				            } else {
+				                $("#dm" + $(element).parent(".char-grid").attr("id")).html("");
+				            }
+				        }
+				        //						console.log("id:" + $(element).parent(".char-grid").attr("id") + ", hp:" + $(element).val());
+				        //						console.log("total:" + total);
+				        //						console.log("------------------");
+				        if (total >= stop) {
+				            return false;
+				        }
+				    });
 				}
 
 				$(document).on("click", "#1-save", function () {
@@ -775,9 +781,8 @@ and open the template in the editor.
 					</table>
 				</div>
 			</div>
-			</section>
-	
-				<div class="container">
+		</section>
+		<div class="container">
 			<div class="row">
 				<h3 class="opener" data-target="#deck_damage"><i class="fa fa-angle-right" aria-hidden="true"></i>防衛デッキ被ダメージ計算</h3>
 			</div>
@@ -785,6 +790,7 @@ and open the template in the editor.
 		<section class="container default-hide-content" id="deck_damage">
 			<div class="row">
 				<div class="col-md-6" style="padding: 0 5px;">
+					<h3 class="opener sub" data-target="#summon_list"><i class="fa fa-angle-right" aria-hidden="true"></i>被ダメージ</h3>
 					<div id="summon_list">
 						<a class="btn btn-default btn-block summon" href="#" role="button" data-ps="0.7">バハムート</a>
 						<a class="btn btn-default btn-block summon" href="#" role="button" data-ps="0.5">オルランド</a>
@@ -793,7 +799,20 @@ and open the template in the editor.
 						<a class="btn btn-default btn-block summon" href="#" role="button" data-ps="0.15">ワルプルギス</a>
 						<a class="btn btn-default btn-block summon" href="#" role="button" data-ps="0.15">ウルスラグナ</a>
 					</div>
-									<div class="col-md-6" style="padding: 0 5px;">
+					<h3 class="opener sub" data-target="#some_list"><i class="fa fa-angle-right" aria-hidden="true"></i>被タゲ→XXダメージ</h3>
+					<div class="default-hide-content" id="some_list">
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.7">タゲ→バハ</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.5">タゲ→オル</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.5,0.3">タゲ→オルロレ</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.5,0.3">タゲ→オルロレロレ</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3">タゲ→ロレ</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3,0.3">タゲ→ロレロレ</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3,0.3,0.3">タゲ→ロレロレロレ</a>
+						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3,0.3,0.3,0.3">タゲ→ロレロレロレロレ</a>
+						<p style="margin-top: 10px;">※砲撃はローレライと同ダメのためロレで確認してください。<br>※タゲ→XXはタゲ取った状態で与召喚ダメ→与部隊撃破ダメ後の状態を表示します。<br>※砲撃タゲ砲撃等のケースを確認したい場合は、ロレダメ与えてからタゲ→ロレで確認してください。</p>
+					</div>
+				</div>
+				<div class="col-md-6" style="padding: 0 5px;">
 					<h3>ユニット生存</h3>
 					<table class="table table-bordered table-hover">
 						<tr><th></th><th>1ユニ</th><th>2ユニ</th><th>3ユニ</th></tr>
@@ -802,11 +821,10 @@ and open the template in the editor.
 						<tr><th>3部隊</th><td><span id="dm3-1" class="dm"></span></td><td><span id="dm3-2" class="dm"></span></td><td><span id="dm3-3" class="dm"></span></td></tr>
 						<tr><th>4部隊</th><td><span id="dm4-1" class="dm"></span></td><td><span id="dm4-2" class="dm"></span></td><td><span id="dm4-3" class="dm"></span></td></tr>
 						<tr><th>5部隊</th><td><span id="dm5-1" class="dm"></span></td><td><span id="dm5-2" class="dm"></span></td><td><span id="dm5-3" class="dm"></span></td></tr>
-										</table>
+					</table>
 				</div>
 			</div>
-				</div>
-		</section>		
+		</section>
 
 		<div class="container">
 			<div class="row">
@@ -925,7 +943,7 @@ and open the template in the editor.
 				<div class="col-md-12" style="margin-top: 30px;">
 					<p style="text-align: center;">&copy; <a href="https://twitter.com/beek_jp" target="_blank">みーむ</a>.</p><br>
 当ツールは、諸事情により前作成者がメンテナンスできなくなった為、GNU Free Documentation Licenseに基づく改変・再利用の許可より<a href="https://twitter.com/Alice_ish" target="_blank">有栖おじさん</a>が勝手に引き継いだものです。
-サポートやご意見はみーむ様ではなく有栖おじさんまでお願い致します。また、ソースコードは<a href="https://github.com/Alice-ish/Alice-ish.github.io" target="_blank">こちら</a>よりご参照下さいませ。
+サポートやご意見はみーむ様ではなく有栖おじさんまでお願い致します。また、ソースコードは<a href="https://github.com/Alice-ish/reconquista" target="_blank">こちら</a>よりご参照下さいませ。
 				</div>
 			</div>
 		</section>
