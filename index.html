@@ -126,6 +126,7 @@ and open the template in the editor.
 					}
 					$("#give-point").html(Math.floor(3000 + total_hp / 100));
 					$("#total-hp").html(total_hp);
+					$("#min-hp").html(0);
 					$("#now-hp").html(total_hp);
 					get_unit_ps(1, 1, total_hp);
 					get_unit_ps(1, 2, total_hp);
@@ -178,12 +179,14 @@ and open the template in the editor.
 					data_reset(5, 3);
 					$("#total-hp").html("0");
 					$("#now-hp").html("0");
+					$("#min-hp").html("0");
 					$("#deck-memo").val("");
 					$.toaster({priority: 'danger', title: 'Notice', message: 'リセットしました。'});
 					return false;
 				});
 				$(document).on("click", ".summon", function () {
-				    var hp = $("#now-hp").html();
+				    var hp = $("#now-hp").html() - $("#min-hp").html();
+				    $("#min-hp").html(0);
 				    var dm = Math.floor(hp * Number($(this).data("ps")));
 				    var rem = hp - dm;
 				    $(".dm").html("");
@@ -194,7 +197,7 @@ and open the template in the editor.
 				});
 				$(document).on("click", ".target-summon", function () {
 				    var units_hp = get_target_units_hp() * 1;
-				    var base_hp = $("#now-hp").html() * 1;
+				    var base_hp = $("#now-hp").html() * 1 - $("#min-hp").html() * 1;
 				    var ps = $(this).data("ps");
 				    var dm_ps = ps.toString().split(',');
 				    var summon_dm_total = 0 * 1;
@@ -208,15 +211,16 @@ and open the template in the editor.
 				        console.log("召喚トータルダメージ：" + summon_dm_total);
 				        hp = hp - summon_dm;
 				    });
-				    var rem = base_hp;
-				    var min_hp = summon_dm_total;
+				    var rem = $("#now-hp").html();
+				    var old_min_hp = $("#min-hp").html() * 1;
+				    var min_hp = summon_dm_total + old_min_hp;
 				    console.log("ベースHP：" + base_hp);
 				    console.log("召喚トータルダメージ：" + summon_dm_total);
 				    console.log("部隊撃破ダメージ：" + units_hp);
 
 				    $(".dm").html("");
 				    set_summon_dm(rem, min_hp);
-				    $("#now-hp").html(rem - min_hp);
+				    $("#min-hp").html(min_hp);
 				    $.toaster({ priority: 'success', title: 'Notice', message: '被ダメージ算出しました。' });
 				    return false;
 				});
@@ -780,7 +784,8 @@ and open the template in the editor.
 					<h3>デッキ情報</h3>
 					<table class="table table-bordered table-hover">
 						<tr><td>総HP</td><td><span id="total-hp">0</span></td></tr>
-						<tr><td>限HP</td><td><span id="now-hp">0</span></td></tr>
+						<tr><td>このHPから出てくる</td><td><span id="now-hp">0</span></td></tr>
+                        <tr><td>このHPまで出てくる</td><td><span id="min-hp">0</span></td></tr>
 						<tr><td>自拠点陥没時与Pt</td><td><span id="give-point">0</span></td></tr>
 					</table>
 				</div>
@@ -813,7 +818,7 @@ and open the template in the editor.
 						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3,0.3">タゲ→ロレロレ</a>
 						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3,0.3,0.3">タゲ→ロレロレロレ</a>
 						<a class="btn btn-default btn-block target-summon" href="#" role="button" data-ps="0.3,0.3,0.3,0.3">タゲ→ロレロレロレロレ</a>
-						<p style="margin-top: 10px;">※砲撃はローレライと同ダメのためロレで確認してください。<br>※タゲ→XXはタゲ取った状態で与召喚ダメ→与部隊撃破ダメ後の状態を表示します。<br>※砲撃タゲ砲撃等のケースを確認したい場合は、ロレダメ与えてからタゲ→ロレで確認してください。</p>
+						<p style="margin-top: 10px;">※砲撃はローレライと同ダメのためロレで確認してください。<br>※タゲ→XXはタゲ取った状態で与召喚ダメ→与部隊撃破ダメ後の状態を表示します。<br>※砲撃タゲ砲撃等のケースを確認したい場合は、ロレダメ与えてからタゲ→ロレで確認してください。<br>※通常召喚を押したらタゲ状態が自動的に解除されます。</p>
 					</div>
 				</div>
 				<div class="col-md-6" style="padding: 0 5px;">
